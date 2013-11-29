@@ -431,7 +431,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 @synthesize selectedToken = _selectedToken;
 @synthesize tokenizingCharacters = _tokenizingCharacters;
 @synthesize forcePickSearchResult = _forcePickSearchResult;
-
+@synthesize shouldBecomeFirstResponder = _shouldBecomeFirstResponder;
 #pragma mark Init
 - (instancetype)initWithFrame:(CGRect)frame {
 	
@@ -477,6 +477,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 	
 	_tokens = [NSMutableArray array];
 	_editable = YES;
+  _shouldBecomeFirstResponder = YES;
 	_removesTokensOnEndEditing = YES;
 	_tokenizingCharacters = [NSCharacterSet characterSetWithCharactersInString:@","];
 }
@@ -534,7 +535,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 
 #pragma mark Event Handling
 - (BOOL)becomeFirstResponder {
-	return (_editable ? [super becomeFirstResponder] : NO);
+	return (_editable && _shouldBecomeFirstResponder ? [super becomeFirstResponder] : NO);
 }
 
 - (void)didBeginEditing {
@@ -679,7 +680,10 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 }
 
 - (void)selectToken:(TIToken *)token {
-	
+  if ([token.delegate respondsToSelector:@selector(performSelectorWithToken:)]) {
+    [token.delegate performActionWithToken:token];
+  }
+
 	[self deselectSelectedToken];
 	
 	_selectedToken = token;
@@ -1018,6 +1022,8 @@ CGPathRef CGPathCreateDisclosureIndicatorPath(CGPoint arrowPointFront, CGFloat h
 @synthesize tintColor = _tintColor;
 @synthesize textColor = _textColor;
 @synthesize highlightedTextColor = _highlightedTextColor;
+@synthesize shouldDrawWithSolidColor = _shouldDrawWithSolidColor;
+@synthesize shouldDrawWithWhiteBackground = _shouldDrawWithWhiteBackground;
 @synthesize accessoryType = _accessoryType;
 @synthesize maxWidth = _maxWidth;
 
@@ -1044,6 +1050,8 @@ CGPathRef CGPathCreateDisclosureIndicatorPath(CGPoint arrowPointFront, CGFloat h
 		
 		_accessoryType = TITokenAccessoryTypeNone;
 		_maxWidth = 200;
+    _shouldDrawWithSolidColor = NO;
+    _shouldDrawWithWhiteBackground = YES;
 		
 		[self setBackgroundColor:[UIColor clearColor]];
 		[self sizeToFit];
@@ -1185,28 +1193,41 @@ CGPathRef CGPathCreateDisclosureIndicatorPath(CGPoint arrowPointFront, CGFloat h
 	CGContextRestoreGState(context);
 	
 	CGPathRef innerPath = CGPathCreateTokenPath(self.bounds.size, YES);
-    
+  
+  if (_shouldDrawWithWhiteBackground) {
     // Draw a white background so we can use alpha to lighten the inner gradient
     CGContextSaveGState(context);
-	CGContextAddPath(context, innerPath);
+    CGContextAddPath(context, innerPath);
     CGContextSetFillColor(context, (CGFloat[4]){1, 1, 1, 1});
     CGContextFillPath(context);
     CGContextRestoreGState(context);
-	
+  }
 	// Draw the inner gradient.
 	CGContextSaveGState(context);
 	CGContextAddPath(context, innerPath);
 	CGPathRelease(innerPath);
 	CGContextClip(context);
 	
-	CGFloat locations[2] = {0, (drawHighlighted ? 0.9 : 0.6)};
+  if (_shouldDrawWithSolidColor) {
+    CGFloat locations[2] = {0, 1.0};
+    CGFloat highlightedComp[8] = {red, green, blue, 1.0, red, green, blue, 1.0};
+    CGFloat nonHighlightedComp[8] = {red, green, blue, 1.0, red, green, blue, 1.0};
+    
+    CGGradientRef gradient = CGGradientCreateWithColorComponents(colorspace, (drawHighlighted ? highlightedComp : nonHighlightedComp), locations, 2);
+    CGContextDrawLinearGradient(context, gradient, CGPointZero, endPoint, 0);
+    CGGradientRelease(gradient);
+    CGContextRestoreGState(context);
+  } else {
+    CGFloat locations[2] = {0, (drawHighlighted ? 0.9 : 0.6)};
     CGFloat highlightedComp[8] = {red, green, blue, 0.7, red, green, blue, 1};
     CGFloat nonHighlightedComp[8] = {red, green, blue, 0.15, red, green, blue, 0.3};
-	
-	CGGradientRef gradient = CGGradientCreateWithColorComponents(colorspace, (drawHighlighted ? highlightedComp : nonHighlightedComp), locations, 2);
-	CGContextDrawLinearGradient(context, gradient, CGPointZero, endPoint, 0);
-	CGGradientRelease(gradient);
-	CGContextRestoreGState(context);
+    
+    CGGradientRef gradient = CGGradientCreateWithColorComponents(colorspace, (drawHighlighted ? highlightedComp : nonHighlightedComp), locations, 2);
+    CGContextDrawLinearGradient(context, gradient, CGPointZero, endPoint, 0);
+    CGGradientRelease(gradient);
+    CGContextRestoreGState(context);
+    
+  }
 	
 	CGFloat accessoryWidth = 0;
 	
@@ -1232,10 +1253,18 @@ CGPathRef CGPathCreateDisclosureIndicatorPath(CGPoint arrowPointFront, CGFloat h
 			CGContextAddPath(context, disclosurePath);
 			CGContextClip(context);
 			
-			CGGradientRef disclosureGradient = CGGradientCreateWithColorComponents(colorspace, highlightedComp, NULL, 2);
-			CGContextDrawLinearGradient(context, disclosureGradient, CGPointZero, endPoint, 0);
-			CGGradientRelease(disclosureGradient);
-			
+      
+      if (_shouldDrawWithSolidColor) {
+        CGFloat highlightedComp[8] = {red, green, blue, 1.0, red, green, blue, 1.0};
+        CGGradientRef disclosureGradient = CGGradientCreateWithColorComponents(colorspace, highlightedComp, NULL, 2);
+        CGContextDrawLinearGradient(context, disclosureGradient, CGPointZero, endPoint, 0);
+        CGGradientRelease(disclosureGradient);
+      } else {
+        CGFloat highlightedComp[8] ={red, green, blue, 0.7, red, green, blue, 1};
+        CGGradientRef disclosureGradient = CGGradientCreateWithColorComponents(colorspace, highlightedComp, NULL, 2);
+        CGContextDrawLinearGradient(context, disclosureGradient, CGPointZero, endPoint, 0);
+        CGGradientRelease(disclosureGradient);
+			}
 			arrowPoint.y += 0.5;
 			CGPathRef innerShadowPath = CGPathCreateDisclosureIndicatorPath(arrowPoint, _font.pointSize, kDisclosureThickness, NULL);
 			CGContextAddPath(context, innerShadowPath);

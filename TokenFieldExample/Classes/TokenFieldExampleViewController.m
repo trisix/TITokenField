@@ -51,15 +51,33 @@
 	[_messageView setAutoresizingMask:UIViewAutoresizingNone];
 	[_messageView setDelegate:self];
 	[_messageView setFont:[UIFont systemFontOfSize:15]];
+  _messageView.editable = NO;
 	[_messageView setText:@"Some message. The whole view resizes as you type, not just the text view."];
 	[_tokenFieldView.contentView addSubview:_messageView];
 	
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillShow:) name:UIKeyboardWillShowNotification object:nil];
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
-	
+  
+  TIToken *token1 = 	[[TIToken alloc] initWithTitle:@"Event1"];
+  token1.shouldDrawWithSolidColor = YES;
+  token1.shouldDrawWithWhiteBackground = NO;
+  token1.delegate = self;
+  [_tokenFieldView.tokenField addToken:token1];
+  TIToken *token2 = 	[[TIToken alloc] initWithTitle:@"Event2"];
+  token2.delegate = self;
+  [_tokenFieldView.tokenField addToken:token2];
+  TIToken *token3 = 	[[TIToken alloc] initWithTitle:@"Event3"];
+  token3.delegate = self;
+  [_tokenFieldView.tokenField addToken:token3];
+  
+  _tokenFieldView.scrollEnabled=NO;
+  _tokenFieldView.tokenField.shouldBecomeFirstResponder = NO;
 	// You can call this on either the view on the field.
 	// They both do the same thing.
-	[_tokenFieldView becomeFirstResponder];
+}
+
+-(void)tapped:(id)sender{
+  NSLog(@"I'm alive!");
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation {
@@ -148,4 +166,9 @@
 	[_tokenFieldView updateContentSize];
 }
 
+
+-(void)performActionWithToken:(TIToken *)token {
+
+  NSLog(@"%@",token.title);
+}
 @end

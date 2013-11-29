@@ -51,6 +51,13 @@
 @interface TITokenFieldInternalDelegate : NSObject <UITextFieldDelegate>
 @end
 
+@protocol TITokenDelegate <NSObject>
+
+@optional
+- (void)performActionWithToken:(TIToken *)token;
+
+@end
+
 //==========================================================
 #pragma mark - TITokenFieldView -
 //==========================================================
@@ -86,6 +93,7 @@ typedef enum {
 @property (weak, nonatomic, readonly) NSArray * tokenTitles;
 @property (weak, nonatomic, readonly) NSArray * tokenObjects;
 @property (nonatomic, assign) BOOL editable;
+@property (nonatomic, assign) BOOL shouldBecomeFirstResponder;
 @property (nonatomic, assign) BOOL resultsModeEnabled;
 @property (nonatomic, assign) BOOL removesTokensOnEndEditing;
 @property (nonatomic, readonly) int numberOfLines;
@@ -125,8 +133,11 @@ typedef enum {
 @property (nonatomic, strong) UIColor * textColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor * highlightedTextColor UI_APPEARANCE_SELECTOR;
 @property (nonatomic, strong) UIColor * tintColor UI_APPEARANCE_SELECTOR;
+@property (nonatomic, assign) BOOL shouldDrawWithSolidColor;
+@property (nonatomic, assign) BOOL shouldDrawWithWhiteBackground;
 @property (nonatomic, assign) TITokenAccessoryType accessoryType;
 @property (nonatomic, assign) CGFloat maxWidth;
+@property (nonatomic, weak) id <TITokenDelegate> delegate;
 
 - (instancetype)initWithTitle:(NSString *)aTitle;
 - (instancetype)initWithTitle:(NSString *)aTitle representedObject:(id)object;
