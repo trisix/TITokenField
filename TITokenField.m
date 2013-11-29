@@ -680,7 +680,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 }
 
 - (void)selectToken:(TIToken *)token {
-  if ([token.delegate respondsToSelector:@selector(performSelectorWithToken:)]) {
+  if ([token.delegate respondsToSelector:@selector(performActionWithToken:)]) {
     [token.delegate performActionWithToken:token];
   }
 
