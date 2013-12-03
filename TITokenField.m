@@ -8,6 +8,7 @@
 
 #import "TITokenField.h"
 #import <QuartzCore/QuartzCore.h>
+#define colorFloat(x) ((x>0)?x:0)
 
 @interface TITokenField ()
 @property (nonatomic, assign) BOOL forcePickSearchResult;
@@ -1210,7 +1211,7 @@ CGPathRef CGPathCreateDisclosureIndicatorPath(CGPoint arrowPointFront, CGFloat h
 	
   if (_shouldDrawWithSolidColor) {
     CGFloat locations[2] = {0, 1.0};
-    CGFloat highlightedComp[8] = {red, green, blue, 1.0, red, green, blue, 1.0};
+    CGFloat highlightedComp[8] = {colorFloat(red-0.2), colorFloat(green-0.2), colorFloat(blue-0.2), 1.0, colorFloat(red-0.2), colorFloat(green-0.2), colorFloat(blue-0.2), 1.0};
     CGFloat nonHighlightedComp[8] = {red, green, blue, 1.0, red, green, blue, 1.0};
     
     CGGradientRef gradient = CGGradientCreateWithColorComponents(colorspace, (drawHighlighted ? highlightedComp : nonHighlightedComp), locations, 2);

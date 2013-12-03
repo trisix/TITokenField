@@ -59,14 +59,20 @@
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardWillHide:) name:UIKeyboardWillHideNotification object:nil];
   
   TIToken *token1 = 	[[TIToken alloc] initWithTitle:@"Event1"];
+  [token1 setTintColor:[UIColor colorWithRed:0.337 green:0.306 blue:0.29 alpha:1.0]];
+  
   token1.shouldDrawWithSolidColor = YES;
   token1.shouldDrawWithWhiteBackground = NO;
   token1.delegate = self;
   [_tokenFieldView.tokenField addToken:token1];
   TIToken *token2 = 	[[TIToken alloc] initWithTitle:@"Event2"];
+  token2.shouldDrawWithSolidColor = YES;
+  token2.shouldDrawWithWhiteBackground = NO;
   token2.delegate = self;
   [_tokenFieldView.tokenField addToken:token2];
   TIToken *token3 = 	[[TIToken alloc] initWithTitle:@"Event3"];
+  token3.shouldDrawWithSolidColor = YES;
+  token3.shouldDrawWithWhiteBackground = NO;
   token3.delegate = self;
   [_tokenFieldView.tokenField addToken:token3];
   
